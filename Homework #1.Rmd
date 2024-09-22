@@ -1,0 +1,79 @@
+---
+title: 'Homework #1'
+author: "Andrea Astudillo"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r}
+Typical_Employee_Survey_Data <- read.csv(file.choose())
+survey=(Typical_Employee_Survey_Data)
+str(survey)
+class(survey)
+
+# Print out the 5-point summary and bloxpot for each comlumn
+summary(survey)
+boxplot(survey)
+
+# Convert the columns that need to be converted to Factors
+survey$Gender <- as.factor(survey$Gender)
+class(survey$Gender)
+
+survey$Job.Satisfaction <- as.factor(survey$Job.Satisfaction)
+class(survey$Job.Satisfaction)
+
+survey$Important.Characteristics <- as.factor(survey$Important.Characteristics)
+class(survey$Job.Satisfaction)
+
+survey$Promotion.Likehood <- as.factor(survey$Promotion.Likehood)
+class(survey$Promotion.Likehood)
+
+survey$Decision.Participation <- as.factor(survey$Decision.Participation)
+class(survey$Decision.Participation)
+
+survey$Budget.Participation <- as.factor(survey$Budget.Participation)
+class(survey$Budget.Participation)
+
+survey$Pride.in.Organization <- as.factor(survey$Pride.in.Organization)
+class(survey$Pride.in.Organization)
+
+survey$Job.Loyalty <- as.factor(survey$Job.Loyalty)
+class(survey$Job.Loyalty)
+
+survey$Workplace.Relations <- as.factor(survey$Workplace.Relations)
+class(survey$Workplace.Relations)
+
+#Plot the right visual for each column
+library(ggplot2)
+hist(survey$Age)
+
+ggplot(survey, aes(x=Gender)) + geom_bar(fill = "blue")
+
+Job.Satisfaction.counts = table(survey$Job.Satisfaction)
+pie(Job.Satisfaction.counts)
+
+ggplot(survey, aes(x=Important.Characteristics)) + geom_bar(fill = "red")
+
+hist(survey$Years.Employed)
+
+Promotion.Likehood.counts = table(survey$Promotion.Likehood)
+pie(Promotion.Likehood.counts)
+
+ggplot(survey, aes(x=Decision.Participation)) + geom_bar(fill = "green")
+
+ggplot(survey, aes(x=Budget.Participation)) + geom_bar(fill = "blue")
+
+Pride.in.Organization.counts = table(survey$Pride.in.Organization)
+pie(Pride.in.Organization.counts)
+
+ggplot(survey, aes(x=Job.Loyalty)) + geom_bar(fill = "red")
+
+ggplot(survey, aes(x=Workplace.Relations)) + geom_bar(fill = "green")
+
+#Plot scatter plots to show few relations
+ggplot(survey, aes(x=Job.Loyalty, y=as.numeric(Job.Satisfaction))) + geom_point(color="red") + labs(title = "Job Satisfaction vs Job Loyalty", x="Job Loyalty", y="Job Satisfaction") + theme_minimal()
+
+ggplot(survey, aes(x=Pride.in.Organization, y=as.numeric(Job.Satisfaction))) + geom_point(color="green") + labs(title = "Job Satisfaction vs Pride in Organization", x="Pride in Organiization", y="Job Satisfaction") + theme_minimal()
+
+ggplot(survey, aes(x=Important.Characteristics, y=as.numeric(Job.Satisfaction))) + geom_point(color="blue") + labs(title = "Important Characteristics vs Job Satisfaction", x="Important Characteristics", y="Job Satisfaction") + theme_minimal()
+```
