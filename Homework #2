@@ -1,0 +1,34 @@
+#Detailed description of the data. See https://help.osf.io/article/217-how-to-make-a-data-dictionary
+Links to an external site. for ideas on how to create a good data dictionary.
+
+Variable Name 
+Year
+Month
+Model
+Sales Value
+
+Measurement Unit
+Numeric
+Categorical
+Categorical
+Numeric
+
+Allowed Values
+2015 - 2023
+January - December
+S,X,Y and 3
+$12 - $57,158
+
+Description
+year number assigned to each model's sales
+months assigned to each model bases on the year
+different models Tesla sales
+montly sales for each model
+
+# Data Collection Methodology. State how the data is collected, by whom, how often, etc. 
+-The sales data for the different models from Tesla was collected from Good Car Bad Car Automative Sales Data. Good Car Bad Car Automative Sales Data 
+updates its automative sales every month, but its frequency depends on data availability.
+
+# Why does this data set intrigue you?
+-Tesla is a well-known brand for electric vehicles. Analyzing the sales trends of this data will give insights into the customer preferences for shifting
+to sustainable transportation. Not only this, but it also opens the discussion on how Tesla vehicles' sales can impact environmental sustainability.
