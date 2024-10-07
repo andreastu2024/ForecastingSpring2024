@@ -1,0 +1,27 @@
+#Mean of all available history for Model 3 and Y
+-The mean forecast for both Tesla's model 3 and Y has smooth the predictions and its is not considering any trends
+or seasonal behaviors. The forecast will not assume any changes over the following years, therefore it suggest stability
+in sales. However the historical data in the past has shown significan trends and seasonalities.
+
+# Naive for Model 3 and Y
+-I have use the naive method, the random walk with drift and the seasonal naive method for both models 3 and Y
+-The naive forecast from random walk with drift for both Tesla's model 3 and Y has allowed me to see that the historical
+data had an upward trend which is also reflecting in the forecast. In model Y, I can observe the upward trend is higher
+model 3.
+
+-The seasonal naive forecast for both Tesla's model 3 and Y has capture the past seasonal patterns without considering
+any trends and fluctuations.
+
+# Moving Averages for Model 3 and Y
+-The moving average for both Tesla's model 3 and Y has reduced the moise in the data allowing to identify any trends. 
+In model Y I can clearly identify that there in a upward trend, menawhile in model 3, there is seasonality patterns 
+from 2018 to 2021. After 2021, in model 3 there is an upward trend.
+
+#Holtwinters
+-The Holtwinter forecast for both Tesla's model 3 and Y is considering trends and seasonal components. In both models,
+I can observe the forecast is considering all patterns which better fits the historical data.
+
+#Accuracy measure
+-The accuary I have choose is MAE. The best model based on the MAE for Model 3 and Y is the moving average forecast 
+as it has the lowest errors from the other methods.
+
