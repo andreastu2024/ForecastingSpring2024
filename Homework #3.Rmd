@@ -1,0 +1,139 @@
+---
+title: 'Homework #3'
+author: "Andrea Astudillo"
+date: "2024-10-05"
+output: html_document
+---
+
+```{r}
+Tesla.Model.3 <- read.csv(file.choose())
+Tesla.Model.Y <- read.csv(file.choose())
+sales3=(Tesla.Model.3)
+salesY=(Tesla.Model.Y)
+class(sales3)
+class(salesY)
+sales3$Sales.Units = as.numeric(sales3$Sales.Units)
+str(sales3)
+sales3$Model = as.factor(sales3$Model)
+str(sales3)
+sales3$Month = as.factor(sales3$Month)
+str(sales3)
+sales3$Year = as.numeric(sales3$Year)
+str(sales3)
+sales3$Year_Month = sprintf('%d-%02d',sales3$Year, sales3$Month)
+str(sales3)
+sales3$Year_Month = as.factor(sales3$Year_Month)
+str(sales3)
+ts_sales3 = ts(sales3$Sales.Units,start = c(2017,9), frequency = 12)
+str(ts_sales3)
+
+salesY$Sales.Units = as.numeric(salesY$Sales.Units)
+str(salesY)
+salesY$Model = as.factor(salesY$Model)
+str(salesY)
+salesY$Month = as.factor(salesY$Month)
+str(salesY)
+salesY$Year = as.numeric(salesY$Year)
+str(salesY)
+salesY$Year_Month = sprintf('%d-%02d',salesY$Year, salesY$Month)
+str(salesY)
+salesY$Year_Month = as.factor(salesY$Year_Month)
+str(salesY)
+ts_salesY = ts(salesY$Sales.Units,start = c(2020,7), frequency = 12)
+str(ts_salesY)
+
+library(fpp)
+library(fpp2)
+library(TTR)
+
+attributes(ts_sales3)
+plot(ts_sales3)
+acf(ts_sales3)
+
+attributes(ts_salesY)
+plot(ts_salesY)
+acf(ts_salesY)
+
+#Mean of all available history
+mean_forecast_3 = meanf(ts_sales3,12)
+plot(mean_forecast_3)
+
+mean_forecast_Y = meanf(ts_salesY,12)
+plot(mean_forecast_Y)
+
+# Naive
+naive_forecast_3 =naive(ts_sales3,12)
+plot(naive_forecast_3)
+rwf_forecast_3 = rwf(ts_sales3,12,drift = TRUE)
+plot(rwf_forecast_3)
+snaive_forecast_3 = snaive(ts_sales3)
+plot(snaive_forecast_3)
+
+naive_forecast_Y =naive(ts_salesY,12)
+plot(naive_forecast_Y)
+rwf_forecast_Y = rwf(ts_salesY,12,drift = TRUE)
+plot(rwf_forecast_Y)
+snaive_forecast_Y = snaive(ts_salesY)
+plot(snaive_forecast_Y)
+
+# Moving Averages
+MA3_forecast_3 = ma(ts_sales3, order = 3)
+plot(ts_sales3,col="blue")
+lines(MA3_forecast_3,col ="red")
+
+MA3_forecast_Y = ma(ts_salesY, order = 3)
+plot(ts_salesY,col="blue")
+lines(MA3_forecast_Y,col ="red")
+
+# plot all in a single chart
+plot(mean_forecast_3)
+lines(naive_forecast_3$mean,col="red")
+lines(rwf_forecast_3$mean,col="pink")
+lines(snaive_forecast_3$mean,col="green")
+lines(MA3_forecast_3,col="purple")
+
+plot(mean_forecast_Y)
+lines(naive_forecast_Y$mean,col="red")
+lines(rwf_forecast_Y$mean,col="pink")
+lines(snaive_forecast_Y$mean,col="green")
+lines(MA3_forecast_Y,col="purple")
+
+# HoltWinters
+HW_forecast_3 = HoltWinters(ts_sales3)
+plot(HW_forecast_3)
+SSE_Simple_3 = HoltWinters(ts_sales3,beta=FALSE,gamma = FALSE)
+plot(SSE_Simple_3)
+forecast_HW_3 = forecast(HW_forecast_3, h=12)
+plot(forecast_HW_3)
+forecast_SSE3 = forecast(SSE_Simple_3, h=12)
+plot(forecast_SSE3)
+
+HW_forecast_Y = HoltWinters(ts_salesY)
+plot(HW_forecast_Y)
+SSE_Simple_Y = HoltWinters(ts_salesY,beta=FALSE,gamma = FALSE)
+plot(SSE_Simple_Y)
+forecast_HW_Y = forecast(HW_forecast_Y, h=12)
+plot(forecast_HW_Y)
+forecast_SSEY = forecast(SSE_Simple_Y, h=12)
+plot(forecast_SSEY)
+
+#Accuracy measure
+accuracy(mean_forecast_3)
+accuracy(mean_forecast_Y)
+
+accuracy(naive_forecast_3)
+accuracy(rwf_forecast_3)
+
+accuracy(naive_forecast_Y)
+accuracy(rwf_forecast_Y)
+
+accuracy(forecast_HW_3)
+accuracy(forecast_HW_Y)
+
+accuracy(forecast_SSE3)
+accuracy(forecast_SSEY)
+
+accuracy(MA3_forecast_3,ts_sales3)
+accuracy(MA3_forecast_Y,ts_salesY)
+```
+
