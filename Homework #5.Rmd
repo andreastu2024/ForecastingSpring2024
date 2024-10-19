@@ -1,0 +1,122 @@
+---
+title: "Homework #5-"
+author: "Andrea Astudillo"
+date: "2024-10-19"
+output: html_document
+---
+
+#1 Create a times series
+```{r}
+flightVolume = read.csv(file.choose())
+library(readr)
+library(fpp)
+library(fpp2)
+library(TTR)
+flight=(flightVolume)
+flight_ts=ts(flightVolume$reslong, frequency = 12, start = c(1976,1), end = c(2016,11))
+```
+
+#2 Verify how much history to include in your analysis
+```{r}
+plot(flight_ts)
+flight_win=window(flight_ts, start=c(2011,1), end = c(2016,11))
+plot(flight_win)
+```
+
+#3-Hypothesize if the dataset has trend, seasonality, or both
+
+I hypothesis that the data set will have both seasonality and trend
+
+#4 Verify using Acf
+
+We can observe from the Acf plot that every year the values passed the confidence intervals showing us trend in the data. 
+Also, within the year, the values do not cross the confidence intervals showing us seasonality in the data.
+
+```{r}
+Acf(flight_win)
+Acf(flight_win,lag.max = 50)
+```
+
+#5 Verify using decomposition
+
+The decomposition plot verifies what was explained in the Acf plot. The data contains
+seasonality and trends.
+
+```{r}
+stl_decomp = stl(flight_win,s.window = "periodic")
+plot(stl_decomp)
+```
+
+#6 Create a forecast model for the next 12 months. Include Naive, Average, Exponential Smoothing, HoltWinters, and Decomposition (both types). 
+```{r}
+naive_flight=naive(flight_win,12)
+forecast_naive=forecast(naive_flight, h=12)
+plot(forecast_naive)
+
+mean_flight=meanf(flight_win, 12)
+forecast_mean=forecast(mean_flight, h=12)
+plot(forecast_mean)
+
+SS_flight=ses(flight_win, 12)
+forecast_SS=forecast(SS_flight, h=12)
+plot(forecast_SS)
+
+HW_flight=HoltWinters(flight_win)
+forecast_HW=forecast(HW_flight, h=12)
+plot(forecast_HW)
+
+decompose_flight_additive=decompose(flight_win)
+additive_flight=HoltWinters(flight_win, seasonal = "additive")
+forecast_additive_flight=forecast(additive_flight)
+plot(forecast_additive_flight)
+
+decompose_flight_multiplicative=decompose(flight_win, type = "multiplicative")
+multiplicative_flight=HoltWinters(flight_win, seasonal = "multiplicative")
+forecast_multiplicative_flight=forecast(multiplicative_flight)
+plot(forecast_multiplicative_flight)
+```
+
+#7 ChoOse an accuracy measure
+
+Given the results of the accuracy metrics in the naive forecast, it does not appear to perform well across all of them.
+
+The accuracy metrics in the mean forecast appears to be performing better than the previous one. ME is close to zero indicating less errors in the forecast.
+
+It appears that the exponential smoothing forecast has the lowest accuracy results under MAE.
+
+The holt-winters is performing well across all metrics.
+
+```{r}
+naive_accuracy=accuracy(forecast_naive)
+naive_accuracy
+mean_accuracy=accuracy(forecast_mean)
+mean_accuracy
+SS_accuracy=accuracy(forecast_SS)
+SS_accuracy
+HW_accuracy=accuracy(forecast_HW)
+HW_accuracy
+```
+
+#8 Show model rank with accuracy measures
+
+The first rank accuracy is the forecast method Holt-Winters and the second best is Exponential Smoothing.
+
+```{r}
+table_accuracy=data.frame(Method=c("Naive", "Mean", "Exponential Smoothing", "Holt-Winters"), ME=c(naive_accuracy[1,"ME"], mean_accuracy[1,"ME"], SS_accuracy[1,"ME"], HW_accuracy[1,"ME"]), RMSE=c(naive_accuracy[1,"RMSE"], mean_accuracy[1,"RMSE"], SS_accuracy[1,"RMSE"], HW_accuracy[1,"RMSE"]), MAE=c(naive_accuracy[1,"MAE"], mean_accuracy[1,"MAE"], SS_accuracy[1,"MAE"], HW_accuracy[1,"MAE"]), MAPE=c(naive_accuracy[1,"MAPE"], mean_accuracy[1,"MAPE"], SS_accuracy[1,"MAPE"], HW_accuracy[1,"MAPE"]), MASE=c(naive_accuracy[1,"MASE"], mean_accuracy[1,"MASE"], SS_accuracy[1,"MASE"], HW_accuracy[1,"MASE"]))
+print(table_accuracy)
+```
+
+#9 Choose which models and how are you going to use them for Forecasting
+
+Holt-Winters has the lowest accuracy across all metrics. Holt-Winters forecasting its suitable for seasonality and trend, which the data being analyze contains both.
+
+#10 Provide the forecast for the next 12 months (point and range) and explain why you feel confident with these forecasts
+
+Holt-Winters appears to be the best model comparing to the other forecasting methods. When ploting Acf, the forecast shows some seasonality values that still needs to be considered, requiring some improvement. However, the Holt-Winters includes the upper and lower values proving expected values for uncertainty.
+
+```{r}
+forecast_HW
+plot(forecast_HW)
+attributes(forecast_HW)
+Acf(forecast_HW$residuals)
+```
