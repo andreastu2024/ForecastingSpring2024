@@ -1,0 +1,103 @@
+---
+title: 'Homework #6'
+author: "Andrea Astudillo"
+date: "2024-10-26"
+output: html_document
+---
+
+```{r}
+insurance = read.csv(file.choose())
+library(readr)
+library(fpp)
+library(fpp2)
+library(TTR)
+insurance=(insurance)
+insurance_ts=ts(insurance$Quotes, frequency = 12, start = c(2002,1), end = c(2005,4))
+```
+
+#2 Verify how much history to include in your analysis
+```{r}
+plot(insurance_ts)
+```
+
+#3-Hypothesize if the dataset has trend, seasonality, or both
+
+I hypothesize the data set will have both seasonality and trend.
+
+#4 Verify using Acf
+
+We can observe from the Acf plot that every year the values passed the confidence intervals showing us trend in the data. 
+Also, within the year, the values do not cross the confidence intervals showing us seasonality in the data.
+```{r}
+Acf(insurance_ts)
+```
+
+
+#4 Verify using Acf
+
+The decomposition plot verifies what was explained in the Acf plot. The data contains
+seasonality and trends.
+```{r}
+stl_decomp = stl(insurance_ts,s.window = "periodic")
+plot(stl_decomp)
+```
+#6. Chose an accuracy measure
+
+I will choose the accuracy measure RMSE as it will penalize for less errors. We can observe in the data there are some years of increase and suddenly the following one a drop.
+
+#7 Create a forecast model for the next 12 months. Include Naive, Average, Exponential Smoothing, HoltWinters, and Decomposition (both types). 
+```{r}
+naive_insurance=naive(insurance_ts,12)
+forecast_naive=forecast(naive_insurance, h=12)
+plot(forecast_naive)
+
+mean_insurance=meanf(insurance_ts,12)
+forecast_mean=forecast(mean_insurance, h=12)
+plot(forecast_mean)
+
+ss_insurance=ses(insurance_ts,12)
+forecast_ss=forecast(ss_insurance, h=12)
+plot(forecast_ss)
+
+hw_insurance=HoltWinters(insurance_ts)
+forecast_hw=forecast(hw_insurance, h=12)
+plot(forecast_hw)
+
+decompose_insurance_additive=decompose(insurance_ts)
+additive_insurance=HoltWinters(insurance_ts, seasonal = "additive")
+forecast_additive=forecast(additive_insurance)
+plot(forecast_additive)
+
+decompose_insurance_multiplicative=decompose(insurance_ts, type = "multiplicative")
+multiplicative_insurance=HoltWinters(insurance_ts, seasonal = "multiplicative")
+forecast_multiplicative=forecast(multiplicative_insurance)
+plot(forecast_multiplicative)
+```
+
+#8 Show model rank with accuracy measures
+
+The first rank accuracy is the exponential smoothing across all metrics.
+```{r}
+naive_accuracy=accuracy(forecast_naive)
+mean_accuracy=accuracy(forecast_mean)
+ss_accuracy=accuracy(forecast_ss)
+hw_accuracy=accuracy(forecast_hw)
+additive_accuracy=accuracy(forecast_additive)
+multiplicative_accuracy=accuracy(forecast_multiplicative)
+table_accuracy=data.frame(Method=c("Naive", "Mean", "Exponential Smoothing", "Holt-Winters"), ME=c(naive_accuracy[1,"ME"], mean_accuracy[1,"ME"], ss_accuracy[1,"ME"], hw_accuracy[1,"ME"]), RMSE=c(naive_accuracy[1,"RMSE"], mean_accuracy[1,"RMSE"], ss_accuracy[1,"RMSE"], hw_accuracy[1,"RMSE"]), MAE=c(naive_accuracy[1,"MAE"], mean_accuracy[1,"MAE"], ss_accuracy[1,"MAE"], hw_accuracy[1,"MAE"]), MAPE=c(naive_accuracy[1,"MAPE"], mean_accuracy[1,"MAPE"], ss_accuracy[1,"MAPE"], hw_accuracy[1,"MAPE"]), MASE=c(naive_accuracy[1,"MASE"], mean_accuracy[1,"MASE"], ss_accuracy[1,"MASE"], hw_accuracy[1,"MASE"]))
+print(table_accuracy)
+```
+#9 Choose which models and how are you going to use them for Forecasting
+
+I have chosen the RMSE as the accuracy method. Exponential smoothing has the lowest accuracy across all metrics. Exponential Smoothing can capture both seasonality and trends and it will be effective for this data as it contains both. Also with exponential smoothing, I can add weights to decrease the focus on the past data and focus on more recent observations. However, MASE has lower accuracy errors when comparing to RMSE.
+
+#10 Provide the forecast for the next 12 months (point and range) and explain why you feel confident with these forecasts.
+
+Exponential Smoothing appears to be the best model comparing to the other forecasting methods. When ploting Acf, the forecast shows some seasonality and trend values that still needs to be considered, requiring some improvement. However, the Exponential Smoothing includes the upper and lower values proving expected values for uncertainty.
+
+```{r}
+forecast_ss
+plot(forecast_ss)
+attributes(forecast_ss)
+Acf(forecast_ss$residuals)
+```
