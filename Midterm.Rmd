@@ -1,0 +1,358 @@
+---
+title: "Midterm"
+author: "Andrea Astudillo"
+date: "2024-11-04"
+output: html_document
+---
+
+```{r}
+library(readr)
+library(fpp)
+library(fpp2)
+library(TTR)
+sales = read.csv(file.choose())
+plot(sales$Sales)
+```
+
+##Summary of Import Data
+-The first step before forecasting is to import the data. We can observe below that the data needs to be converted to times series in order to compare the different forecast methods.
+
+#Plot and Inference
+#Show a time series plot.
+```{r}
+sales_data = sales$Sales
+sales_ts = ts(sales_data, frequency = 12, start = c(2020, 1))
+plot(sales_ts)
+sales_win = window(sales_ts, frequency = 12, start = c(2022, 8))
+plot(sales_win)
+```
+
+#Please summarize your observations of the time series plot
+-It seems the sales data is for a new business where sales were very low at its early stage. Therefore, in order to perform a forecast analysis, I will be removing sales before 2022.
+
+#Central Tendency
+#What are the min, max, mean, median, 1st, and 3rd Quartile values of the times series?
+```{r}
+summary(sales_ts)
+```
+#Show the box plot.
+```{r}
+boxplot(sales_ts)
+```
+
+#Can you summarize your observation about the time series from the summary stats and box plot?
+-In the summary results we can observe that the median is lower than the mean, indicating the distribution is right skewed. After plotting the box plot, we can observe there are no outliers in the data. Also we can confirm with the box plot that the data is right skewed.
+
+#Decomposition
+#Plot the decomposition of the time series.
+```{r}
+stl_decom = stl(sales_win,s.window = "periodic")
+plot(stl_decom)
+```
+#Is the time series seasonal?
+```{r}
+decomp = decompose(sales_win)
+decomp
+```
+#Is the decomposition additive or multiplicative?
+-The decomposition is additive. We can observe that the seasonal variation is constant over each year and month.
+
+#If seasonal, what are the values of the seasonal monthly indices?
+```{r}
+decomp$figure
+```
+
+#For which month is the time series value high, and for which month is it low?
+-The month with the lowest value in the time series is March and the one with the highest value is November.
+
+#Can you think of the reason behind the high and low values in those months?
+-In the month of November holidays starts and families shop for Thanksgiving and Christmas, therefore sales will increase. Meanwhile in the month of March there are no holidays or special events like graduations that will trigger customer to increase in their orders.
+
+#Show the plot for time series adjusted for seasonality. Overlay this with the line foractuals? Does seasonality have big fluctuations in the value of time series?
+```{r}
+seasadj(stl_decom)
+plot(sales_win)
+stl_decom = stl(sales_win,s.window = "periodic")
+lines(seasadj(stl_decom), col="red")
+```
+-Yes the seasonality have big fluctuations over the value of the time series. For example, the last months of 2022 the value of the time series is dropping while the seasonality value is increasing.
+
+#Naïve Method
+#Output
+```{r}
+naive_sales = naive(sales_win)
+plot(naive_sales)
+```
+#Perform Residual Analysis for this technique.
+#Do a plot of residuals. What does the plot indicate?
+```{r}
+attributes(naive_sales)
+plot(naive_sales$residuals)
+```
+-After plotting the residuals of the naive forecast we can observe that there is some seasonality pattern. Ideally, the residual plot should not have any pattern.
+
+#Do a Histogram plot of residuals. What does the plot indicate?
+```{r}
+hist(naive_sales$residuals)
+```
+-After plotting the residuals of the naive forecast, the histogram its not normally distributed. Ideally most of the values should be at zero 
+
+#Do a plot of fitted values vs. residuals. What does the plot indicate?
+```{r}
+library(ggplot2)
+plot_naive = data.frame(fitted=naive_sales$fitted, residuals=naive_sales$residuals, actual=sales_win)
+ggplot(plot_naive, aes(x=fitted, y=residuals))+geom_point()
+```
+-Ideally the scatter plot between the fitted and residuals should not have any pattern. The fitted values should have zero effect on the residual values. However this plot shows that the fitted values have effect on the residual value, the lower the fitted value is the higher the residual value is.
+
+#Do a plot of actual values vs. residuals. What does the plot indicate?
+```{r}
+ggplot(plot_naive, aes(x=actual, y=residuals))+geom_point()
+```
+-Similar to the previous plot, it shows that the actual values have effect on the residual values. Ideally the scatter plot should not have any pattern
+
+#Do an ACF plot of the residuals? What does this plot indicate?
+```{r}
+Acf(naive_sales$residuals)
+```
+-In the Acf plot we can observe that some values have cross the confidence level showing trend data was missed in the naive forecast. Also the values that have not cross the confidence interval show seasonality in the data and were not included in the forecast.
+
+#Print the five measures of accuracy for this forecasting technique
+```{r}
+naive_accuracy = accuracy(naive_sales)
+naive_accuracy
+```
+#Forecast
+#Time series value for next year. Show table and plot
+```{r}
+forecast_naive = forecast(naive_sales,12)
+forecast_naive
+```
+
+#Summarize this forecasting technique
+#How good is the accuracy?
+-I have chosen the RMSE accuracy measure to compare all the models. After doing the naive forecast, the accuracy result was high (4468.937), indicating that this might not be the right model to use.
+
+#What does it predict the time series value will be in one year?
+10151.93
+
+#Simple Moving Averages
+#Plot the graph for the time series.
+#Show the Simple Moving average of order three on the plot above in Red
+#Show the Simple Moving average of order six on the plot above in Blue
+#Show the Simple Moving average of order nine on the plot above in Green
+```{r}
+mae3_sales = ma(sales_win,order = 3)
+mae6_sales = ma(sales_win,order = 6)
+mae9_sales = ma(sales_win,order = 9)
+plot(sales_win)
+lines(mae3_sales,col="red")
+lines(mae6_sales,col="blue")
+lines(mae9_sales,col="green")
+```
+
+#(Bonus) show the forecast for the next 12 months using one of the simple average orders that you feel works best for time series
+```{r}
+forecast_mae3 = forecast(mae3_sales, h=12)
+plot(forecast_mae3)
+```
+
+#What are your observations of the plot as the moving average order goes up?
+-After plotting the three different moving averages, we can observe that higher the order number the more smooth the lines its. The lower the moving average the closer it is to the actual values.
+
+#Simple Smoothing
+#Perform a simple smoothing forecast for the next 12 months for the time series.
+```{r}
+ses_sales = ses(sales_win, 12)
+plot(ses_sales)
+```
+#What is the value of alpha? What does that value signify?
+```{r}
+summary(ses_sales)
+```
+The value of alpha is 0.3549. The alpha value is not close to 1, giving more weight to more past values and less responsive to changes.
+
+#What is the value of the initial state?
+-10062.2044 
+
+#What is the value of sigma? What does the sigma signify?
+-The value of sigma is 3817.847 The higher the value of sigma the more variability and the less reliable the forecast it is.
+
+#Perform Residual Analysis for this technique.
+#Do a plot of residuals. What does the plot indicate?
+```{r}
+attributes(ses_sales)
+plot(ses_sales$residuals)
+```
+-After plotting the residuals of the simple exponential smoothing we can observe that there is some seasonality pattern. Ideally, the residual plot should not have any pattern.
+
+#Do a Histogram plot of residuals. What does the plot indicate?
+```{r}
+hist(ses_sales$residuals)
+```
+-After plotting the residuals of the  simple exponential smoothing, the histogram its not normally distributed. Ideally most of the values should be at zero.
+
+#Do a plot of fitted values vs. residuals. What does the plot indicate?
+```{r}
+plot_ses = data.frame(fitted=ses_sales$fitted, residuals=ses_sales$residuals, actual=sales_win)
+ggplot(plot_ses, aes(x=fitted, y=residuals))+geom_point()
+```
+-Ideally the scatter plot between the fitted and residuals should not have any pattern. The fitted values should have zero effect on the residual values. However this plot shows that the fitted values have effect on the residual values.
+
+#Do a plot of actual values vs. residuals. What does the plot indicate?
+```{r}
+ggplot(plot_ses, aes(x=actual, y=residuals))+geom_point()
+```
+-Similar to the previous plot, it shows that the actual values have effect on the residual values. Ideally the scatter plot should not have any pattern.
+
+#Do an ACF plot of the residuals? What does this plot indicate?
+```{r}
+Acf(ses_sales$residuals)
+```
+-In the Acf plot we can observe that some values are on the confidence interval showing trend data was not included in the forecast. Also the values that have not cross the confidence interval show seasonality in the data and was not included in the forecast. 
+
+#Print the five measures of accuracy for this forecasting technique
+```{r}
+ses_accuracy = accuracy(ses_sales)
+ses_accuracy
+```
+#Forecast
+#Time series value for next year. Show table and plot
+```{r}
+forecast_ses = forecast(ses_sales, h=12)
+forecast_ses
+```
+
+#Summarize this forecasting technique
+#How good is the accuracy?
+-I have chosen the RMSE accuracy measure to compare all the models. After doing the simple exponential smoothing forecast, the accuracy result was high (3661.95), indicating that this might not be the right model to use. However, the accuracy result is better than the naive.
+
+#What does it predict the time series value will be in one year?
+-14640.16
+
+#Holt-Winters
+#Perform Holt-Winters forecast for the next 12 months for the time series.
+```{r}
+hw_sales = hw(sales_win, h=12)
+plot(hw_sales)
+```
+
+#What is the value of alpha? What does that value signify?
+```{r}
+summary(hw_sales)
+```
+-The value of alpha is 0.5086. The alpha value closer to 1 will give more weight to more past values and less responsive to changes. In this case alpha is somewhere in the middle.
+
+#What is the value of beta? What does that value signify?
+-The value of alpha is 0.0001. The beta value controls the weight of the trend component, higher values gives weights to the more recent observations of the trend. In this case the beta value is somewhere is the middle.
+
+#What is the value of gamma? What does that value signify?
+-The value of gamma is 0.0001. The gamma values control the weight of the seasonal component, higher values gives weights to the more recent observations of the seasonality. In this case gamma is very low.
+
+#What is the value of initial states for the level, trend, and seasonality? What do these values signify?
+-Initial states:
+    l = 12519.877 
+    b = 191.1975 
+    s = 3141.449 7809.477 2034.435 361.7775 4512.03 -2312.437
+           -3033.341 934.5735 -5035.702 -3807.886 -602.2986 -4002.076
+
+#What is the value of sigma? What does the sigma signify?
+-The value of sigma is 3943.054. The higher the value of sigma the more variability and the less reliable the forecast it is.
+
+#Perform Residual Analysis for this technique.
+#Do a plot of residuals. What does the plot indicate?
+```{r}
+attributes(hw_sales)
+plot(hw_sales$residuals)
+```
+-The residuals appear to be random.
+
+#Do a Histogram plot of residuals. What does the plot indicate?
+```{r}
+hist(hw_sales$residuals)
+```
+-After plotting the residuals of the holtwinters, the histogram it is normally distributed, most of the values have a mean of zero.
+
+#Do a plot of fitted values vs. residuals. What does the plot indicate?
+```{r}
+plot_hw = data.frame(fitted=hw_sales$fitted, residuals=hw_sales$residuals, actual=sales_win)
+ggplot(plot_hw, aes(x=fitted, y=residuals))+geom_point()
+```
+-In this graph we can observed that the fitted values have no effect on the residual values. If we were to add a straight line in the zero, all the values move in the same direction.
+
+#Do a plot of actual values vs. residuals. What does the plot indicate?
+```{r}
+ggplot(plot_hw, aes(x=actual, y=residuals))+geom_point()
+```
+-Similar to the previous plot, it seems that the actual values have no effect on the residual values.
+
+#Do an ACF plot of the residuals? What does this plot indicate?
+```{r}
+Acf(hw_sales$residuals)
+```
+-We can observe that all the values in the Acf plot of the Holt- Winters have not cross the confidence interval. Meaning that this is a good forecast comparing to the previous ones.
+
+#Print the five measures of accuracy for this forecasting technique
+```{r}
+hw_accuracy = accuracy(hw_sales)
+hw_accuracy
+```
+
+#Forecast
+#Time series value for next year. Show table and plot
+```{r}
+forecast_hw = forecast(hw_sales, h=12)
+forecast_hw
+```
+
+#Summarize this forecasting technique
+#How good is the accuracy?
+-I have chosen the RMSE accuracy measure to compare all the models. After doing the holt winters forecast, the accuracy result is 2365.832. Comparing to all the forecast methods, holtwinters have the lowers RMSE accuracy. 
+
+#What does it predict the time series value will be in one year?
+        Point Forecast
+Sep 2024	13392.975	
+Oct 2024	10377.464	
+Nov 2024	9340.533	
+Dec 2024	15501.198	
+Jan 2025	11723.412	
+Feb 2025	12634.819	
+Mar 2025	19649.685	
+Apr 2025	15690.100	
+May 2025	17553.763	
+Jun 2025	23518.134
+
+#Accuracy Summary
+#Show a table of all the forecast methods above with their accuracy measures.
+```{r}
+table_accuracy=data.frame(Method=c("Naive","Exponential Smoothing","Holt-Winters"), ME=c(naive_accuracy[1,"ME"],ses_accuracy[1,"ME"], hw_accuracy[1,"ME"]), RMSE=c(naive_accuracy[1,"RMSE"], ses_accuracy[1,"RMSE"], hw_accuracy[1,"RMSE"]), MAE=c(naive_accuracy[1,"MAE"], ses_accuracy[1,"MAE"], hw_accuracy[1,"MAE"]), MAPE=c(naive_accuracy[1,"MAPE"], ses_accuracy[1,"MAPE"], hw_accuracy[1,"MAPE"]), MASE=c(naive_accuracy[1,"MASE"], ses_accuracy[1,"MASE"], hw_accuracy[1,"MASE"]))
+print(table_accuracy)
+```
+
+#Separately define each forecast method and why it is useful. Show the best and worst forecast method for each of the accuracy measures.
+-Based on the RMSE accuracy, Holwintwers has the lowest accuracy error and naive has the highest score. I have chosen the RMSE accuracy because it gives higher weight to larger errors.
+Naive:
+-The naive method will take the previous data to forecast the next value. Therefore, naive is very simple to forecast and could be the baseline to compare to other methods.
+Exponential Smoothing:
+-The exponential smoothing can give more weight to more recent data. It will also be beneficial when the analysis has trend data.
+Holt-Winters:
+-The Holt-Winter method could be apply when the data has level, trend and seasonality. Also, holt-winters can be use for additive and multiplicative forecasts.
+
+#Conclusion
+#Summarize your analysis of time series value over the time period.
+-Based on the analysis perform the data seems to have both trend and seasonality.
+-After performing the forecast above, we can conclude Holt-Winters has the lowest accuracy errors.
+-Also, the values in the residual plot in the Holt-Winters are within the confidence interval.
+
+#Based on your analysis and forecast above, do you think the value of the time series will increase, decrease, or stay flat over the next year? How about the next 2 years?
+```{r}
+hw_sales = hw(sales_win, h=24)
+plot(hw_sales)
+```
+-I think the sales for the next and two years will remaining constant with some increases and decreases in sales in some months.
+
+#Rank forecasting methods for this time series based on historical values.
+```{r}
+table_accuracy=data.frame(Method=c("Naive","Exponential Smoothing","Holt-Winters"), ME=c(naive_accuracy[1,"ME"],ses_accuracy[1,"ME"], hw_accuracy[1,"ME"]), RMSE=c(naive_accuracy[1,"RMSE"], ses_accuracy[1,"RMSE"], hw_accuracy[1,"RMSE"]), MAE=c(naive_accuracy[1,"MAE"], ses_accuracy[1,"MAE"], hw_accuracy[1,"MAE"]), MAPE=c(naive_accuracy[1,"MAPE"], ses_accuracy[1,"MAPE"], hw_accuracy[1,"MAPE"]), MASE=c(naive_accuracy[1,"MASE"], ses_accuracy[1,"MASE"], hw_accuracy[1,"MASE"]))
+print(table_accuracy)
+```
