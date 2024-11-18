@@ -1,0 +1,57 @@
+---
+title: "Untitled"
+author: "Andrea Astudillo"
+date: "2024-11-18"
+output: html_document
+---
+
+```{r}
+library(fpp)
+library(fpp2)
+library(TTR)
+library(UsingR)
+library(ggplot2)
+
+Tesla.Model.Y <- read.csv(file.choose())
+salesY=(Tesla.Model.Y)
+
+plot(salesY$Sales.Units, salesY$Gas.Price, main = "Scatterplot")
+
+#1-Perform regression
+plot(salesY)
+summary(salesY)
+cor(salesY$Sales.Units, salesY$Gas.Price)
+
+fit = lm(salesY$Sales.Units ~ salesY$Gas.Price, data = salesY)
+ggplot(salesY, aes(x=salesY$Sales.Units, y=salesY$Gas.Price)) +geom_point() + geom_smooth(method = "lm")
+fit
+summary(fit)
+anova(fit)
+
+fit2 = lm(log(Sales.Units) ~ log(Gas.Price), data = salesY)
+plot(jitter(Sales.Units)~jitter(Gas.Price),xlab="Sales Units", ylab = "Gas Price", data = salesY)
+lines(1:40, exp(fit2$coef[1]+fit2$coef[2]*log(1:40)))
+
+plot(log(jitter(salesY$Sales.Units)) ~ log(jitter(salesY$Gas.Price)),xlab="log Sales Units0", ylab="lab Gas Price", data = salesY)
+abline(fit2)
+```
+
+```{r}
+#2-Perform Model Acceptance Steps and show the interpretation of the model output
+summary(fit2)
+```
+
+The model appears to be statistically significant.
+-43% of the variance of the sales units of model Y can be explained by the variation of the gas prices
+-Also the F-statistic is 32.9 indicating there is a linear regression between the gas prices and the sales value. 
+-As well for the p value with 1.11e-06, indicating is far away from the center space of the confidence interval.
+
+```{r}
+#3-Perform Residual Analysis and explain the insights (3 Points)
+res = residuals(fit2)
+par(mfrow=c(1,2))
+plot(jitter(res, amount=0.005) ~ jitter(log(Gas.Price)),ylab = "Residuals", xlab = "Log Gas Price", data=salesY)
+```
+
+Ideally the residual plot should have not pattern where the gas price will have no effect on the residuals. However, the plot above we have observe some pattern.
+
