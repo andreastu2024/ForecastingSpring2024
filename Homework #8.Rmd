@@ -1,0 +1,56 @@
+---
+title: 'Homework #8'
+author: "Andrea Astudillo"
+date: "2024-11-23"
+output: html_document
+---
+
+```{r}
+library(fpp)
+library(fpp2)
+library(TTR)
+library(forecast)
+
+Tesla.Model.Y <- read.csv(file.choose())
+salesY=(Tesla.Model.Y)
+
+ts_salesY = ts(salesY$Sales.Units,start = c(2020,7), frequency = 12)
+plot(ts_salesY)
+
+nsdiffs(ts_salesY)
+ndiffs(ts_salesY)
+ndiffs((diff(ts_salesY,12)))
+tsdisplay(diff(diff(ts_salesY,12)))
+tsdisplay(ts_salesY)
+fit3 <- auto.arima(ts_salesY,trace=TRUE, stepwise = FALSE )
+fit3
+res = residuals(fit3)
+tsdisplay(res)
+```
+In the tsdisplay plot we can observe that there some spikes. In the ACF we can see there are spikes in lag 2 to lag 8 and in PACF there is a spike in lag 2.
+
+In tsdisplay(res) plot we can now observe that there are no spikes in neither ACF and PACF.
+
+sar1=0.6054 indicates that the seasonal values have a strong effect on the current values
+
+s.e=0.1535 is the standard error indicating that the model is reliable for estimates.
+
+```{r}
+#Residuals
+Acf(fit3$residuals)
+Box.test(residuals(fit3), lag=20, type="Ljung")
+plot.ts(residuals(fit3))
+hist(fit3$residuals)
+```
+
+In ACF plot we can now observe that there are no spikes. It can also be confirmed with the plot which the residuals have a random pattern. The same for the histogram, majority of the values are at zero indicating it is normally distributed.
+
+
+
+```{r}
+#Forecast
+plot(forecast(fit3, h=5))
+lines(fit3$fitted,col="red")
+accuracy(forecast(fit3))
+```
+In the accuracy forecast we can observe that ME has the lowest accuracy result.
